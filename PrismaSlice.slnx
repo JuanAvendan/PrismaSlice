@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PrismaSlice.Api/PrismaSlice.Api.csproj" />
+    <Project Path="src/PrismaSlice.Application/PrismaSlice.Application.csproj" />
+    <Project Path="src/PrismaSlice.Domain/PrismaSlice.Domain.csproj" />
+    <Project Path="src/PrismaSlice.Infrastructure/PrismaSlice.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PrismaSlice.IntegrationTests/PrismaSlice.IntegrationTests.csproj" />
+    <Project Path="tests/PrismaSlice.UnitTests/PrismaSlice.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/PrismaSlice.SeedData/PrismaSlice.SeedData.csproj" />
+  </Folder>
+</Solution>
