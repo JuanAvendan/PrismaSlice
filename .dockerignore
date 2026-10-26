@@ -7,6 +7,9 @@
 .vscode/
 .idea/
 tests/
+web/
+models/
 *.md
+!THIRD_PARTY_NOTICES.md
 Dockerfile
 docker-compose*.yml
