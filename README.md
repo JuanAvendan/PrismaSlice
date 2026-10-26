@@ -18,7 +18,7 @@ Type what the problem *means* and get back the tickets that match. Finding them 
 
 *Measured on the seeded data with EmbeddingGemma running in-process through ONNX Runtime. The last query is in English and still finds the Spanish ticket.*
 
-![PrismaSlice search page: typing a query in Spanish, ranked results with similarity scores, an expanded ticket, and an English query matching a Spanish ticket](docs/images/demo.gif)
+![PrismaSlice search page: typing a query in Spanish, ranked results with similarity scores, an expanded ticket, and an English query matching a Spanish ticket](docs/images/demo.png)
 
 ## Quick start
 
