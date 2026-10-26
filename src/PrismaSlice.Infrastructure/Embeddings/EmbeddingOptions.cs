@@ -16,11 +16,13 @@ public class EmbeddingOptions
     public class OllamaOptions
     {
         public string BaseUrl { get; set; } = "http://localhost:11434";
-        public string Model { get; set; } = "nomic-embed-text";
+        // EmbeddingGemma: multilingüe (los tickets están en español) y 768 dimensiones.
+        public string Model { get; set; } = "embeddinggemma";
 
-        // nomic-embed-text está entrenado con estos prefijos de tarea.
-        public string DocumentPrefix { get; set; } = "search_document: ";
-        public string QueryPrefix { get; set; } = "search_query: ";
+        // Prompts de tarea recomendados para EmbeddingGemma en recuperación.
+        // Otros modelos usan otros (p. ej. nomic-embed-text: "search_document: " / "search_query: ").
+        public string DocumentPrefix { get; set; } = "title: none | text: ";
+        public string QueryPrefix { get; set; } = "task: search result | query: ";
     }
 
     public class OpenAIOptions

@@ -30,7 +30,7 @@ catch (HttpRequestException ex)
 {
     host.Services.GetRequiredService<ILogger<Seeder>>().LogError(ex,
         "No se pudo contactar el proveedor de embeddings. Si usas Ollama: " +
-        "instálalo, ejecuta 'ollama pull nomic-embed-text' y vuelve a correr el seed. " +
+        "instálalo, ejecuta 'ollama pull embeddinggemma' y vuelve a correr el seed. " +
         "Los datos ya insertados se conservan.");
     return 1;
 }

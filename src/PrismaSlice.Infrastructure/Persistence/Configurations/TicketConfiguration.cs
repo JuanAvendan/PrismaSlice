@@ -28,7 +28,7 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.Property(t => t.Status).HasConversion<string>().HasMaxLength(20);
         builder.Property(t => t.Priority).HasConversion<string>().HasMaxLength(20);
 
-        // pgvector: 768 dims (nomic-embed-text y OpenAI truncado).
+        // pgvector: 768 dims (EmbeddingGemma y OpenAI truncado).
         builder.Property(t => t.Embedding).HasColumnType("vector(768)");
 
         // Índice HNSW con distancia coseno para búsqueda semántica.

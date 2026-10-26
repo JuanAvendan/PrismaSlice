@@ -1,7 +1,7 @@
 namespace PrismaSlice.Application.Abstractions;
 
 /// <summary>
-/// Qué se está embebiendo. Algunos modelos (p. ej. nomic-embed-text) esperan
+/// Qué se está embebiendo. Algunos modelos (p. ej. EmbeddingGemma) esperan
 /// prefijos distintos para documentos indexados y para consultas de búsqueda.
 /// </summary>
 public enum EmbeddingInput { Document, Query }
