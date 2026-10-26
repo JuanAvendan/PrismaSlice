@@ -11,7 +11,14 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.ToTable("Tickets");
         builder.HasKey(t => t.Id);
 
-        builder.Property(t => t.Code).HasMaxLength(20).IsRequired();
+        // Código legible generado por la base a partir de una secuencia: TCK-00001.
+        // El sentinel "" indica a EF que no lo envíe en el INSERT y lo lea de vuelta.
+        builder.Property(t => t.Code)
+            .HasMaxLength(20)
+            .IsRequired()
+            .HasDefaultValueSql(
+                $"'TCK-' || lpad(nextval('\"{AppDbContext.TicketNumberSequence}\"')::text, 5, '0')")
+            .HasSentinel(string.Empty);
         builder.HasIndex(t => t.Code).IsUnique();
 
         builder.Property(t => t.Title).HasMaxLength(200).IsRequired();
