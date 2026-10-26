@@ -5,6 +5,20 @@ namespace PrismaSlice.SeedData;
 
 public static class SeedCatalog
 {
+    // Qué equipo atiende cada categoría de TicketSamples.
+    public static readonly IReadOnlyDictionary<string, string> TeamByCategory =
+        new Dictionary<string, string>
+        {
+            ["Punto de venta (POS)"] = "SUP",
+            ["Cuentas y accesos"]    = "SUP",
+            ["Infraestructura"]      = "INFRA",
+            ["Reportería"]           = "DEV",
+            ["E-commerce"]           = "ECOM",
+            ["Pagos"]                = "ECOM",
+            ["Inventario"]           = "LOG",
+            ["CRM"]                  = "CRM",
+        };
+
     public static List<Department> Departments() =>
     [
         new() { Name = "Tecnología",   Code = "TECH" },
