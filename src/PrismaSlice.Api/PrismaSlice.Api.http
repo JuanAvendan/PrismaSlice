@@ -1,6 +1,6 @@
 @PrismaSlice.Api_HostAddress = http://localhost:5004
 
-GET {{PrismaSlice.Api_HostAddress}}/weatherforecast/
+GET {{PrismaSlice.Api_HostAddress}}/swagger/v1/swagger.json
 Accept: application/json
 
 ###
