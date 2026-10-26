@@ -52,7 +52,8 @@ Requirements:
 ```powershell
 az login
 gh auth login
-pwsh ./infra/azure-setup.ps1 -NeonConnectionString (Read-Host -AsSecureString "Neon connection string")
+pwsh ./infra/azure-setup.ps1 -AlertEmail you@example.com `
+    -NeonConnectionString (Read-Host -AsSecureString "Neon connection string")
 ```
 
 The script is safe to re-run. It does the following:
@@ -61,8 +62,9 @@ The script is safe to re-run. It does the following:
 2. Creates the app: 1 vCPU / 2 GiB, 0 to 1 replicas, public HTTPS. The model needs about 1 GiB of RAM.
 3. Stores the Neon connection string as an app secret.
 4. Creates an Entra ID app with a federated credential for the GitHub `production` environment, with Contributor rights on the resource group only. Deployments use OIDC, so no Azure password is stored in GitHub.
-5. Sets the repository secrets and variables the Deploy workflow needs.
-6. Writes the API URL into `web/vercel.json`.
+5. Creates a monthly **budget** on the resource group, USD 1 by default (`-BudgetAmountUsd`). It sends an email when actual spend passes 50 % and when the forecast passes 100 %.
+6. Sets the repository secrets and variables the Deploy workflow needs.
+7. Writes the API URL into `web/vercel.json`.
 
 From then on, every merge to `master` deploys automatically.
 
@@ -79,6 +81,22 @@ From then on, every merge to `master` deploys automatically.
 - **Neon also suspends.** The first query after it has been idle takes a little longer.
 - **Rate limits.** By default the public API allows 30 searches per minute and 5 ticket creations per minute per IP. Change them with `RateLimiting__SearchPerMinute` and `RateLimiting__WritesPerMinute`.
 - **Health checks.** `/health` doesn't touch the database, so probes don't keep Neon awake.
+
+## Cost controls
+
+The demo relies on the **monthly free grant** of Container Apps, which renews every month. It does not use the trial credit, which expires after 30 days.
+
+When the Azure trial ends, the subscription has to be upgraded to pay-as-you-go to keep running. After that you are only billed for usage above the free amounts, so normal portfolio traffic costs USD 0.
+
+Two safeguards cover the rest:
+
+- **Budget alerts.** The setup script creates them. Azure budgets only notify; they never stop resources, and alerts can arrive several hours late.
+- **Demo power switch.** In GitHub, go to **Actions → Demo power → Run workflow** and pick `off`, `on` or `status`.
+  - `off` disables the app's ingress. Nothing can reach the API, so it stays scaled to zero and costs nothing.
+  - `on` restores the ingress. The URL stays the same, because it comes from the Container Apps environment, so the Vercel rewrite keeps working.
+  - While the demo is off, the search page says so and points visitors to the recording in the README.
+
+With `--max-replicas 1`, the worst case is one replica running all month. Check the current Container Apps prices before relying on any figure.
 
 ## Tear down
 

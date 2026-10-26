@@ -1,0 +1,65 @@
+name: Demo power
+
+# Apaga o enciende la demo pública desde GitHub (Actions → Demo power → Run workflow).
+# "off" desactiva el ingress: nadie puede llegar a la API, así que escala a cero y no
+# genera costo. "on" lo vuelve a activar con la misma URL (depende del entorno, no de la app).
+
+on:
+  workflow_dispatch:
+    inputs:
+      state:
+        description: "Estado de la demo"
+        type: choice
+        options: ["off", "on", "status"]
+        default: "status"
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  power:
+    name: Demo ${{ inputs.state }}
+    if: vars.AZURE_CONTAINER_APP != ''
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      APP: ${{ vars.AZURE_CONTAINER_APP }}
+      RG: ${{ vars.AZURE_RESOURCE_GROUP }}
+
+    steps:
+      - uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Install Container Apps extension
+        run: az extension add --name containerapp --upgrade --only-show-errors
+
+      - name: Turn off
+        if: inputs.state == 'off'
+        run: az containerapp ingress disable --name "$APP" --resource-group "$RG" --only-show-errors
+
+      - name: Turn on
+        if: inputs.state == 'on'
+        run: |
+          az containerapp ingress enable --name "$APP" --resource-group "$RG" \
+            --type external --target-port 8080 --transport auto --only-show-errors > /dev/null
+
+      - name: Report
+        run: |
+          fqdn=$(az containerapp show --name "$APP" --resource-group "$RG" \
+            --query properties.configuration.ingress.fqdn --output tsv)
+          {
+            echo "### Demo PrismaSlice"
+            if [ -n "$fqdn" ]; then
+              echo "🟢 **Encendida**: https://$fqdn/health"
+            else
+              echo "⚪ **Apagada**: sin ingress, la app no recibe tráfico y escala a cero."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+          cat "$GITHUB_STEP_SUMMARY"

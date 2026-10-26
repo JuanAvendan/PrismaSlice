@@ -15,15 +15,23 @@
       - La cadena de conexión de Neon como secreto de la app (no queda en el repo).
       - Una app de Entra ID con credencial federada para el environment "production"
         de GitHub, con rol Contributor solo sobre el grupo de recursos.
+      - Un presupuesto mensual sobre el grupo de recursos (USD 1 por defecto) que avisa
+        por correo al 50 % real y al 100 % proyectado. Azure no corta el gasto por sí
+        solo: para apagar la demo usa el workflow "Demo power" en GitHub Actions.
     Al final escribe la URL de la API en web/vercel.json.
 
 .EXAMPLE
-    ./infra/azure-setup.ps1 -NeonConnectionString (Read-Host -AsSecureString "Cadena de Neon")
+    ./infra/azure-setup.ps1 -AlertEmail tu@correo.com `
+        -NeonConnectionString (Read-Host -AsSecureString "Cadena de Neon")
 #>
 param(
     [Parameter(Mandatory)]
     [securestring] $NeonConnectionString,
 
+    [Parameter(Mandatory)]
+    [string] $AlertEmail,
+
+    [decimal] $BudgetAmountUsd = 1,
     [string] $ResourceGroup = "prismaslice-rg",
     [string] $Location = "eastus2",
     [string] $Environment = "prismaslice-env",
@@ -99,6 +107,43 @@ if (-not $existing) {
 }
 $scope = az group show --name $ResourceGroup --query id -o tsv
 az role assignment create --assignee $clientId --role Contributor --scope $scope --only-show-errors | Out-Null
+
+Step "Presupuesto de USD $BudgetAmountUsd/mes con alertas a $AlertEmail"
+# API REST de Cost Management: permite fijar destinatarios de correo en todas las versiones de az.
+# Las alertas llegan con algunas horas de retraso; son un aviso, no un tope de gasto.
+$monthStart = (Get-Date).ToUniversalTime().ToString("yyyy-MM-01T00:00:00Z")
+$budget = @{
+    properties = @{
+        category      = "Cost"
+        amount        = $BudgetAmountUsd
+        timeGrain     = "Monthly"
+        timePeriod    = @{ startDate = $monthStart }
+        notifications = @{
+            actual_over_50 = @{
+                enabled = $true; operator = "GreaterThan"; threshold = 50
+                thresholdType = "Actual"; contactEmails = @($AlertEmail)
+            }
+            forecast_over_100 = @{
+                enabled = $true; operator = "GreaterThan"; threshold = 100
+                thresholdType = "Forecasted"; contactEmails = @($AlertEmail)
+            }
+        }
+    }
+} | ConvertTo-Json -Depth 6
+$budgetFile = New-TemporaryFile
+Set-Content -Path $budgetFile -Value $budget -Encoding utf8
+try {
+    az rest --method put `
+        --url "https://management.azure.com$scope/providers/Microsoft.Consumption/budgets/prismaslice-monthly?api-version=2023-05-01" `
+        --body "@$budgetFile" --only-show-errors | Out-Null
+}
+catch {
+    # Algunas suscripciones (p. ej. de prueba) no admiten presupuestos: se avisa y se sigue.
+    Write-Warning "No se pudo crear el presupuesto ($($_.Exception.Message)). Créalo en el portal: Cost Management → Budgets."
+}
+finally {
+    Remove-Item $budgetFile
+}
 
 Step "Secretos y variables del repositorio $Repository"
 gh secret set AZURE_CLIENT_ID --repo $Repository --body $clientId

@@ -112,17 +112,24 @@ async function toggleDetails(code, head, details) {
   }
 }
 
+const OFFLINE_MESSAGE =
+  "The live demo is offline right now. The README on GitHub has a recording of it in action.";
+
 async function getJson(path) {
   let response;
   try {
     response = await fetch(API_BASE + path, { headers: { Accept: "application/json" } });
   } catch {
-    throw new Error("Could not reach the API. Please try again in a moment.");
+    throw new Error(OFFLINE_MESSAGE);
   }
 
   if (response.ok) return response.json();
 
-  // La API responde ProblemDetails (RFC 9457): se muestra su título.
+  // La API siempre responde JSON (ProblemDetails, RFC 9457). Si llega otra cosa, quien
+  // contestó fue el proxy: la API está apagada (workflow "Demo power") o no responde.
+  const isJson = (response.headers.get("content-type") ?? "").includes("json");
+  if (!isJson) throw new Error(OFFLINE_MESSAGE);
+
   const problem = await response.json().catch(() => null);
   const messages = {
     429: "Too many searches in a minute. Please wait a moment.",

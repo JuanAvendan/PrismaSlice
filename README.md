@@ -18,6 +18,8 @@ Type what the problem *means* and get back the tickets that match. Finding them 
 
 *Measured on the seeded data with EmbeddingGemma running in-process through ONNX Runtime. The last query is in English and still finds the Spanish ticket.*
 
+![PrismaSlice search page: typing a query in Spanish, ranked results with similarity scores, an expanded ticket, and an English query matching a Spanish ticket](docs/images/demo.gif)
+
 ## Quick start
 
 Requires Docker.
@@ -174,7 +176,12 @@ The public demo runs at $0:
 - Images on **GitHub Container Registry**.
 - The search page in [`web/`](web/) on **Vercel**.
 
-Every merge to `master` is deployed by GitHub Actions, which signs in to Azure with OIDC, so no Azure password is stored in GitHub. [docs/deploy.md](docs/deploy.md) has the step-by-step guide and the one-time setup script.
+Every merge to `master` is deployed by GitHub Actions, which signs in to Azure with OIDC, so no Azure password is stored in GitHub. Cost controls:
+
+- A monthly budget sends email alerts.
+- The **Demo power** workflow switches the public demo off and on from GitHub.
+
+[docs/deploy.md](docs/deploy.md) has the step-by-step guide and the one-time setup script.
 
 ## Project structure
 
