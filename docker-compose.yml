@@ -1,16 +1,15 @@
 # Stack completo: docker compose up --build
-#   db     → Postgres 17 + pgvector
-#   ollama → servidor de embeddings; ollama-pull descarga embeddinggemma una sola vez
-#   seed   → migraciones + datos sintéticos + embeddings (idempotente)
-#   api    → http://localhost:8080/swagger
+#   db   → Postgres 17 + pgvector
+#   seed → migraciones + datos sintéticos + embeddings (idempotente)
+#   api  → http://localhost:8080/swagger
 #
+# Los embeddings los genera EmbeddingGemma dentro de la API (ONNX Runtime): el
+# modelo viene en la imagen, no hace falta Ollama ni una API externa.
 # Puertos del host configurables (p. ej. si ya tienes Postgres local): DB_PORT, API_PORT.
 
 # Las imágenes chiseled no traen Kerberos: sin GSS, Npgsql no intenta cargar libgssapi.
 x-app-env: &app-env
   ConnectionStrings__Default: Host=db;Port=5432;Database=prisma_slice;Username=prisma;Password=prisma;Gss Encryption Mode=Disable
-  Embeddings__Provider: Ollama
-  Embeddings__Ollama__BaseUrl: http://ollama:11434
 
 services:
   db:
@@ -29,25 +28,6 @@ services:
       timeout: 3s
       retries: 30
 
-  ollama:
-    image: ollama/ollama:0.40.11
-    volumes:
-      - ollama:/root/.ollama
-    healthcheck:
-      test: ["CMD", "ollama", "list"]
-      interval: 2s
-      timeout: 3s
-      retries: 30
-
-  ollama-pull:
-    image: ollama/ollama:0.40.11
-    environment:
-      OLLAMA_HOST: http://ollama:11434
-    entrypoint: ["ollama", "pull", "embeddinggemma"]
-    depends_on:
-      ollama:
-        condition: service_healthy
-
   seed:
     build:
       context: .
@@ -56,8 +36,6 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      ollama-pull:
-        condition: service_completed_successfully
 
   api:
     build:
@@ -74,4 +52,3 @@ services:
 
 volumes:
   pgdata:
-  ollama:

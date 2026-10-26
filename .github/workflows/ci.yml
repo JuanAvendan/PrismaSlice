@@ -31,8 +31,20 @@ jobs:
       - name: Build
         run: dotnet build PrismaSlice.slnx --configuration Release --no-restore
 
+      # El modelo ONNX (~310 MB) se cachea por revisión: solo se descarga si cambia.
+      - name: Cache embedding model
+        uses: actions/cache@v4
+        with:
+          path: models/embeddinggemma-300m
+          key: embeddinggemma-300m-${{ hashFiles('scripts/download-model.sh') }}
+
+      - name: Download embedding model
+        run: sh scripts/download-model.sh
+
       - name: Test
         run: dotnet test --solution PrismaSlice.slnx --configuration Release --no-build
+        env:
+          REQUIRE_EMBEDDING_MODEL: "true"   # los tests del modelo fallan en vez de saltarse
 
   docker:
     name: Docker images
