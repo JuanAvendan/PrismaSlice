@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/api/:path*", "destination": "https://YOUR-CONTAINER-APP.azurecontainerapps.io/api/:path*" },
+    { "source": "/swagger", "destination": "https://YOUR-CONTAINER-APP.azurecontainerapps.io/swagger/index.html" },
+    { "source": "/swagger/:path*", "destination": "https://YOUR-CONTAINER-APP.azurecontainerapps.io/swagger/:path*" }
+  ]
+}

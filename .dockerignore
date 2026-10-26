@@ -13,3 +13,5 @@ models/
 !THIRD_PARTY_NOTICES.md
 Dockerfile
 docker-compose*.yml
+infra/
+scripts/

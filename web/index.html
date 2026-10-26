@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PrismaSlice · Semantic ticket search</title>
+  <meta name="description" content="Semantic search over help-desk tickets: ASP.NET Core, PostgreSQL + pgvector and an embedding model running inside the API.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 3 29 27H3z' fill='%234f46e5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <a class="brand" href="./">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 3 29 27H3z"/></svg>
+        PrismaSlice
+      </a>
+      <nav>
+        <a href="/swagger" target="_blank" rel="noopener">API</a>
+        <a href="https://github.com/JuanAvendan/PrismaSlice" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>Find tickets by what they <em>mean</em>.</h1>
+      <p class="lede">
+        Semantic search over a help-desk backlog. Describe the problem in your own words and the API
+        ranks tickets by meaning, not by shared keywords.
+      </p>
+    </section>
+
+    <form id="search-form" class="search" role="search">
+      <label for="q" class="visually-hidden">Describe the problem</label>
+      <input id="q" name="q" type="search" autocomplete="off" maxlength="500" required
+             placeholder="e.g. los clientes no pueden pagar con tarjeta">
+      <button type="submit">Search</button>
+    </form>
+
+    <div class="examples" aria-label="Example queries">
+      <span>Try:</span>
+      <button type="button" class="chip">el sistema de cobro no saca el comprobante</button>
+      <button type="button" class="chip">olvidé mi clave y no puedo entrar</button>
+      <button type="button" class="chip">hay datos de clientes repetidos</button>
+      <button type="button" class="chip">barcode scanner does not read new products</button>
+    </div>
+    <p class="hint">Tickets are synthetic and written in Spanish. Ask in Spanish or English: the model is multilingual.</p>
+
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <ol id="results" class="results"></ol>
+
+    <section class="how">
+      <h2>How it works</h2>
+      <ol class="steps">
+        <li><strong>Embed the query.</strong> EmbeddingGemma runs <em>inside</em> the .NET API through ONNX Runtime. There is no model server and no external AI API.</li>
+        <li><strong>Search by meaning.</strong> PostgreSQL + pgvector returns the closest tickets by cosine distance, using an HNSW index.</li>
+        <li><strong>Rank and explain.</strong> Each result shows its similarity score. Open a result to see the full ticket.</li>
+      </ol>
+      <p class="stack">ASP.NET Core 10 · EF Core · PostgreSQL + pgvector · ONNX Runtime · Azure Container Apps · Neon · Vercel</p>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap">
+      Portfolio project by Juan Avendaño. All data is synthetic.
+      The embedding model is <a href="https://ai.google.dev/gemma/terms" target="_blank" rel="noopener">EmbeddingGemma (Gemma Terms of Use)</a>.
+    </div>
+  </footer>
+
+  <template id="result-template">
+    <li class="result">
+      <button type="button" class="result-head" aria-expanded="false">
+        <span class="code"></span>
+        <span class="title"></span>
+        <span class="score" aria-label="Similarity">
+          <span class="bar"><span class="fill"></span></span>
+          <span class="value"></span>
+        </span>
+      </button>
+      <div class="meta">
+        <span class="badge category"></span>
+        <span class="badge status-badge"></span>
+        <span class="badge priority"></span>
+      </div>
+      <div class="details" hidden></div>
+    </li>
+  </template>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

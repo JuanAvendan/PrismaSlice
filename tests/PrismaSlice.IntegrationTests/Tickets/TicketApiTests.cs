@@ -9,7 +9,7 @@ namespace PrismaSlice.IntegrationTests.Tickets;
 
 public class TicketApiTests(ApiFactory factory) : IClassFixture<ApiFactory>
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly HttpClient _client = factory.CreateClientWithOwnIp();
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     private CreateTicketRequest NewTicket(
