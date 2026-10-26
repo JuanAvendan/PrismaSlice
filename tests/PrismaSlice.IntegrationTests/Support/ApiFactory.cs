@@ -30,6 +30,17 @@ public sealed class ApiFactory : WebApplicationFactory<Program>, IAsyncLifetime
     public HashingEmbeddingService Embeddings { get; } = new();
     public int RequesterId { get; private set; }
 
+    /// <summary>
+    /// Cliente con su propia IP (X-Forwarded-For): cada test tiene su propia cuota
+    /// del rate limiter y no depende de cuántas peticiones hicieron los demás.
+    /// </summary>
+    public HttpClient CreateClientWithOwnIp()
+    {
+        var client = CreateClient();
+        client.DefaultRequestHeaders.Add("X-Forwarded-For", $"test-{Guid.NewGuid():N}");
+        return client;
+    }
+
     public async ValueTask InitializeAsync()
     {
         await _db.StartAsync();
