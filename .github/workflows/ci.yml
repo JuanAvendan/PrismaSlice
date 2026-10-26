@@ -33,3 +33,19 @@ jobs:
 
       - name: Test
         run: dotnet test --solution PrismaSlice.slnx --configuration Release --no-build
+
+  docker:
+    name: Docker images
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Build API image
+        run: docker build --target api --tag prismaslice-api .
+
+      - name: Build seed image
+        run: docker build --target seed --tag prismaslice-seed .
+
+      - name: Validate compose file
+        run: docker compose config --quiet
