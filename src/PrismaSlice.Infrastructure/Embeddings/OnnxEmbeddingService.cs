@@ -99,9 +99,27 @@ public sealed class OnnxEmbeddingService(
             return _model ??= Load();
     }
 
+    // Una ruta relativa se busca desde el directorio de trabajo hacia arriba: así sirve
+    // igual con `dotnet run` (cwd = carpeta del proyecto), desde la raíz del repo y en Docker (/app).
+    private string ResolveModelDirectory()
+    {
+        var configured = _opt.Onnx.ModelDirectory;
+        if (Path.IsPathRooted(configured))
+            return configured;
+
+        for (var dir = new DirectoryInfo(Environment.CurrentDirectory); dir is not null; dir = dir.Parent)
+        {
+            var candidate = Path.Combine(dir.FullName, configured);
+            if (Directory.Exists(candidate))
+                return candidate;
+        }
+
+        return Path.GetFullPath(configured);
+    }
+
     private LoadedModel Load()
     {
-        var directory = Path.GetFullPath(_opt.Onnx.ModelDirectory);
+        var directory = ResolveModelDirectory();
         var modelPath = Path.Combine(directory, _opt.Onnx.ModelFile);
         var tokenizerPath = Path.Combine(directory, _opt.Onnx.TokenizerFile);
 

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http.HttpResults;
+using PrismaSlice.Api.Hosting;
 using PrismaSlice.Application.Tickets;
 
 namespace PrismaSlice.Api.Endpoints;
@@ -12,17 +13,22 @@ public static class TicketEndpoints
         group.MapPost("/", CreateAsync)
             .WithName("CreateTicket")
             .WithSummary("Crea un ticket y genera su embedding.")
-            .ProducesValidationProblem();
+            .ProducesValidationProblem()
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
+            .RequireRateLimiting(RateLimiting.WritePolicy);
 
         group.MapGet("/search", SearchAsync)
             .WithName("SearchTickets")
             .WithSummary("Búsqueda semántica: tickets parecidos a la consulta, por similitud coseno.")
             .ProducesValidationProblem()
-            .ProducesProblem(StatusCodes.Status503ServiceUnavailable);
+            .ProducesProblem(StatusCodes.Status503ServiceUnavailable)
+            .ProducesProblem(StatusCodes.Status429TooManyRequests)
+            .RequireRateLimiting(RateLimiting.SearchPolicy);
 
         group.MapGet("/{code}", GetAsync)
             .WithName("GetTicket")
-            .WithSummary("Detalle de un ticket por su código (p. ej. TCK-00042).");
+            .WithSummary("Detalle de un ticket por su código (p. ej. TCK-00042).")
+            .RequireRateLimiting(RateLimiting.SearchPolicy);
 
         return app;
     }
