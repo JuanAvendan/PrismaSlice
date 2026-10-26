@@ -26,12 +26,12 @@ try
 {
     await scope.ServiceProvider.GetRequiredService<Seeder>().RunAsync();
 }
-catch (HttpRequestException ex)
+catch (Exception ex) when (ex is FileNotFoundException or HttpRequestException)
 {
     host.Services.GetRequiredService<ILogger<Seeder>>().LogError(ex,
-        "No se pudo contactar el proveedor de embeddings. Si usas Ollama: " +
-        "instálalo, ejecuta 'ollama pull embeddinggemma' y vuelve a correr el seed. " +
-        "Los datos ya insertados se conservan.");
+        "No se pudieron generar los embeddings. Con el proveedor Onnx, descarga el modelo " +
+        "con scripts/download-model.ps1 (o .sh); con Ollama, ejecuta 'ollama pull embeddinggemma'. " +
+        "Los datos ya insertados se conservan: vuelve a correr el seed.");
     return 1;
 }
 

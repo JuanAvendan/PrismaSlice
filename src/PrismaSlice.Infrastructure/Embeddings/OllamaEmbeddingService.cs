@@ -19,9 +19,7 @@ public class OllamaEmbeddingService(
     public async Task<IReadOnlyList<float[]>> EmbedBatchAsync(
         IReadOnlyList<string> texts, EmbeddingInput input, CancellationToken ct = default)
     {
-        var prefix = input == EmbeddingInput.Query
-            ? _opt.Ollama.QueryPrefix
-            : _opt.Ollama.DocumentPrefix;
+        var prefix = _opt.PrefixFor(input);
 
         // /api/embed acepta varios textos en una sola llamada.
         var req = new { model = _opt.Ollama.Model, input = texts.Select(t => prefix + t) };

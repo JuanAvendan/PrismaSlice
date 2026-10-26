@@ -17,6 +17,11 @@ public static class EmbeddingServiceExtensions
 
         switch (opt.Provider.ToLowerInvariant())
         {
+            case "onnx":
+                // Singleton: la sesión de ONNX Runtime es costosa de crear y segura entre hilos.
+                services.AddSingleton<IEmbeddingService, OnnxEmbeddingService>();
+                break;
+
             case "openai":
                 services.AddHttpClient<IEmbeddingService, OpenAIEmbeddingService>(c =>
                 {
@@ -27,10 +32,13 @@ public static class EmbeddingServiceExtensions
                 break;
 
             case "ollama":
-            default:
                 services.AddHttpClient<IEmbeddingService, OllamaEmbeddingService>(c =>
                     c.BaseAddress = new Uri(opt.Ollama.BaseUrl));
                 break;
+
+            default:
+                throw new InvalidOperationException(
+                    $"Embeddings:Provider '{opt.Provider}' no es válido. Usa Onnx, Ollama u OpenAI.");
         }
 
         return services;
