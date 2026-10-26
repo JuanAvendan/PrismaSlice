@@ -27,6 +27,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Sin UseHttpsRedirection: en contenedor el TLS lo termina el proxy/ingress.
 app.MapTicketEndpoints();
 app.Run();
