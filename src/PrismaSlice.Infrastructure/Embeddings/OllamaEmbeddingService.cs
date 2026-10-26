@@ -9,31 +9,33 @@ public class OllamaEmbeddingService(
 {
     private readonly EmbeddingOptions _opt = options.Value;
 
-    public async Task<float[]> EmbedAsync(string text, CancellationToken ct = default)
+    public async Task<float[]> EmbedAsync(
+        string text, EmbeddingInput input, CancellationToken ct = default)
     {
-        var req = new { model = _opt.Ollama.Model, prompt = text };
-        var res = await http.PostAsJsonAsync("/api/embeddings", req, ct);
+        var results = await EmbedBatchAsync([text], input, ct);
+        return results[0];
+    }
+
+    public async Task<IReadOnlyList<float[]>> EmbedBatchAsync(
+        IReadOnlyList<string> texts, EmbeddingInput input, CancellationToken ct = default)
+    {
+        var prefix = input == EmbeddingInput.Query
+            ? _opt.Ollama.QueryPrefix
+            : _opt.Ollama.DocumentPrefix;
+
+        // /api/embed acepta varios textos en una sola llamada.
+        var req = new { model = _opt.Ollama.Model, input = texts.Select(t => prefix + t) };
+        var res = await http.PostAsJsonAsync("/api/embed", req, ct);
         res.EnsureSuccessStatusCode();
 
         var body = await res.Content.ReadFromJsonAsync<OllamaResponse>(ct)
             ?? throw new InvalidOperationException("Respuesta vacía de Ollama.");
 
-        if (body.Embedding.Length != _opt.Dimensions)
-            throw new InvalidOperationException(
-                $"Esperaba {_opt.Dimensions} dims, llegaron {body.Embedding.Length}.");
+        foreach (var embedding in body.Embeddings)
+            EmbeddingGuard.EnsureDimensions(embedding, _opt.Dimensions);
 
-        return body.Embedding;
+        return body.Embeddings;
     }
 
-    public async Task<IReadOnlyList<float[]>> EmbedBatchAsync(
-        IReadOnlyList<string> texts, CancellationToken ct = default)
-    {
-        // Ollama no tiene batch nativo en /api/embeddings; secuencial.
-        var results = new List<float[]>(texts.Count);
-        foreach (var t in texts)
-            results.Add(await EmbedAsync(t, ct));
-        return results;
-    }
-
-    private sealed record OllamaResponse(float[] Embedding);
+    private sealed record OllamaResponse(float[][] Embeddings);
 }

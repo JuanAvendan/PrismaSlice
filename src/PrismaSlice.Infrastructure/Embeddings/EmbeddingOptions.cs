@@ -6,6 +6,8 @@ public class EmbeddingOptions
 
     /// <summary>"Ollama" u "OpenAI".</summary>
     public string Provider { get; set; } = "Ollama";
+
+    /// <summary>Debe coincidir con la columna vector(N) de la base.</summary>
     public int Dimensions { get; set; } = 768;
 
     public OllamaOptions Ollama { get; set; } = new();
@@ -14,7 +16,13 @@ public class EmbeddingOptions
     public class OllamaOptions
     {
         public string BaseUrl { get; set; } = "http://localhost:11434";
-        public string Model { get; set; } = "nomic-embed-text";
+        // EmbeddingGemma: multilingüe (los tickets están en español) y 768 dimensiones.
+        public string Model { get; set; } = "embeddinggemma";
+
+        // Prompts de tarea recomendados para EmbeddingGemma en recuperación.
+        // Otros modelos usan otros (p. ej. nomic-embed-text: "search_document: " / "search_query: ").
+        public string DocumentPrefix { get; set; } = "title: none | text: ";
+        public string QueryPrefix { get; set; } = "task: search result | query: ";
     }
 
     public class OpenAIOptions

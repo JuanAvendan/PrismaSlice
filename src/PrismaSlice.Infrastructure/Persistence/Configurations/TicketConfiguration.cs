@@ -11,7 +11,14 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.ToTable("Tickets");
         builder.HasKey(t => t.Id);
 
-        builder.Property(t => t.Code).HasMaxLength(20).IsRequired();
+        // Código legible generado por la base a partir de una secuencia: TCK-00001.
+        // El sentinel "" indica a EF que no lo envíe en el INSERT y lo lea de vuelta.
+        builder.Property(t => t.Code)
+            .HasMaxLength(20)
+            .IsRequired()
+            .HasDefaultValueSql(
+                $"'TCK-' || lpad(nextval('\"{AppDbContext.TicketNumberSequence}\"')::text, 5, '0')")
+            .HasSentinel(string.Empty);
         builder.HasIndex(t => t.Code).IsUnique();
 
         builder.Property(t => t.Title).HasMaxLength(200).IsRequired();
@@ -21,7 +28,7 @@ public class TicketConfiguration : IEntityTypeConfiguration<Ticket>
         builder.Property(t => t.Status).HasConversion<string>().HasMaxLength(20);
         builder.Property(t => t.Priority).HasConversion<string>().HasMaxLength(20);
 
-        // pgvector: 768 dims (nomic-embed-text y OpenAI truncado).
+        // pgvector: 768 dims (EmbeddingGemma y OpenAI truncado).
         builder.Property(t => t.Embedding).HasColumnType("vector(768)");
 
         // Índice HNSW con distancia coseno para búsqueda semántica.

@@ -1,6 +1,24 @@
 @PrismaSlice.Api_HostAddress = http://localhost:5004
 
-GET {{PrismaSlice.Api_HostAddress}}/swagger/v1/swagger.json
+### Búsqueda semántica
+GET {{PrismaSlice.Api_HostAddress}}/api/tickets/search?q=los clientes no pueden pagar con tarjeta&limit=5
 Accept: application/json
+
+### Detalle de un ticket
+GET {{PrismaSlice.Api_HostAddress}}/api/tickets/TCK-00001
+Accept: application/json
+
+### Crear un ticket
+POST {{PrismaSlice.Api_HostAddress}}/api/tickets
+Content-Type: application/json
+
+{
+  "title": "El datáfono de la caja 2 no conecta",
+  "description": "Desde esta mañana el datáfono muestra 'sin conexión' y no permite cobrar con tarjeta.",
+  "category": "Punto de venta (POS)",
+  "priority": "High",
+  "requesterId": 8,
+  "labels": ["pos", "pagos"]
+}
 
 ###

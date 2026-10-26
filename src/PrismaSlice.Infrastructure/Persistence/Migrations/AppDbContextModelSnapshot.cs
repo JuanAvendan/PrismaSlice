@@ -24,6 +24,8 @@ namespace PrismaSlice.Infrastructure.Persistence.Migrations
             NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "vector");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.HasSequence<int>("TicketNumbers");
+
             modelBuilder.Entity("LabelTicket", b =>
                 {
                     b.Property<int>("LabelsId")
@@ -168,8 +170,10 @@ namespace PrismaSlice.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Code")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValueSql("'TCK-' || lpad(nextval('\"TicketNumbers\"')::text, 5, '0')");
 
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
